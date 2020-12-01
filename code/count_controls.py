@@ -1,10 +1,8 @@
 #!/usr/bin/python
-import optparse
-import operator
-import re
-import sys
-import gzip 
 import bisect
+import gzip
+import optparse
+import sys
 
 #Parse options
 parser = optparse.OptionParser()
@@ -30,14 +28,14 @@ parser.add_option("--bedfile", action="store", dest="bedfilename")
 
 options, args = parser.parse_args()
 if not options.snpfilename:   # if filename is not given
-    parser.error('A file containing a list of SNPs is needed')
+	parser.error('A file containing a list of SNPs is needed')
 
 if not options.vcffilename:   # if filename is not given
-    parser.error('A vcf file is needed')
+	parser.error('A vcf file is needed')
 
 if options.database not in ["generic", "gnomad", "exac"]:
 	parser.error('Database must be generic, gnomad, or exac')
-	
+
 #Parse populations
 if options.database!="generic" and options.pop is not None:
 	pops=str(options.pop).split(',')
@@ -48,11 +46,11 @@ else:
 if options.database=="gnomad":
 	pop_list=["AFR", "AMR", "ALL", "ASJ", "EAS", "FIN", "NFE", "SAS"]
 	if not all(p in pop_list for p in pops):
-		   parser.error('Please check the populations listed')
+		parser.error('Please check the populations listed')
 if options.database=="exac":
 	pop_list=["AFR", "AMR", "ALL", "EAS", "FIN", "NFE", "SAS"]
 	if not all(p in pop_list for p in pops):
-		   parser.error('Please check the populations listed')
+		parser.error('Please check the populations listed')
 if options.database=="generic" and "ALL" not in pops:
 	parser.error('Please check the populations listed for your control database')
 
@@ -65,30 +63,30 @@ for line_vcf1 in vcffile:
 		if "ID=chr" in line_vcf[0]:
 			chrformat="chr"
 vcffile.close()
-			
+
 #Check generic database to make sure it has AC, AN and AF
 if options.database=="generic":
 	vcffile=gzip.open(options.vcffilename, "rb")
-        ac_found=0
+	ac_found=0
 	an_found=0
-        for line_vcf1 in vcffile:
-                if line_vcf1[0]=="#" and ("id=ac," in line_vcf1.lower()):
-                        ac_found=1
+	for line_vcf1 in vcffile:
+		if line_vcf1[0]=="#" and ("id=ac," in line_vcf1.lower()):
+			ac_found=1
 		elif line_vcf1[0]=="#" and ("id=an," in line_vcf1.lower()):
-                        an_found=1
+			an_found=1
 		elif line_vcf1[0:1]=="#C":
-                        break
-        if ac_found==0 or an_found==0:
-                sys.stdout.write("AC and AN not found in vcf file\n")
-                sys.exit()
-        vcffile.close()
-	
+			break
+	if ac_found==0 or an_found==0:
+		sys.stdout.write("AC and AN not found in vcf file\n")
+		sys.exit()
+	vcffile.close()
+
 def makesnplist(snpfile):
 	#Makes a list of SNPs present in the snpfile
 	snplist=[]
 	#Read in snpfile
 	snp_file=open(snpfile, "r")
-	
+
 	for line_snp1 in snp_file:
 		line_snp=line_snp1.rstrip('\n').split('\t')
 
@@ -125,7 +123,7 @@ def extractcounts(pops, vcfline, max_ac, max_af, popmax_af,min_an):
 	if float(popmax_af)<1:
 		af_popmax_out=get_popmax(vcfline)
 	af_popmax_out=num_convert(af_popmax_out, 0)
-	       
+
 	if (ac_out>float(max_ac)) or (af_out>float(max_af)) or (an<float(min_an)) or (af_popmax_out>float(popmax_af)):
 		ac_out=0
 		hom_out=0
@@ -141,7 +139,7 @@ def extractcounts(pops, vcfline, max_ac, max_af, popmax_af,min_an):
 				hom_out=num_convert(hom_out, 0)
 			elif "ALL" not in pops:
 				ac_out=0
-               			hom_out=0
+				hom_out=0
 				for p in range(0, len(pops), 1):
 					temp_pop=pops[p].lower()
 					if (";ac_"+temp_pop+"=") in (";"+vcfline):
@@ -160,7 +158,7 @@ def extractcounts(pops, vcfline, max_ac, max_af, popmax_af,min_an):
 				hom_out=num_convert(hom_out, 0)
 			elif "ALL" not in pops:
 				ac_out=0
-               			hom_out=0
+				hom_out=0
 				for p in range(0, len(pops), 1):
 					temp_pop=pops[p].lower()
 					if (";ac_"+temp_pop+"=") in (";"+vcfline):
@@ -189,8 +187,8 @@ def get_popmax(vcfline):
 			ac_popmax=num_convert((";"+vcfline).split((";ac_popmax="))[1].split(";")[0].split(",")[0],0)
 			an_popmax=num_convert((";"+vcfline).split((";an_popmax="))[1].split(";")[0].split(",")[0],100000000000)
 			af_popmax_out=float(ac_popmax)/float(an_popmax)
-	return af_popmax_out		
-	
+	return af_popmax_out
+
 
 def sumcount(genesnps, snptable):
 	ac_sum=0
@@ -206,7 +204,7 @@ def sumcount(genesnps, snptable):
 allsnplist=makesnplist(options.snpfilename)
 
 #Make a hashtable with keys as each SNP, and stores a list of indices of carriers for that SNP
-count_table={} 
+count_table={}
 
 
 #read in bedfile
@@ -217,18 +215,18 @@ if options.bedfilename is not None:
 		bed=open(options.bedfilename, "r")
 	bed_lower={}
 	bed_upper={}
-       	for line_b1 in bed:
-                line_b=line_b1.rstrip().split('\t')
-                chr=str(line_b[0]).lower().replace("chr", "")
+	for line_b1 in bed:
+		line_b=line_b1.rstrip().split('\t')
+		chr=str(line_b[0]).lower().replace("chr", "")
 		if chr not in bed_lower:
 			bed_lower[chr]=[chr, []]
 			bed_upper[chr]=[chr, []]
-                bed_lower[chr][1].append(int(line_b[1])+1)
-                bed_upper[chr][1].append(int(line_b[2]))
+		bed_lower[chr][1].append(int(line_b[1])+1)
+		bed_upper[chr][1].append(int(line_b[2]))
 	bed.close()
 
 vcffile=gzip.open(options.vcffilename, "rb")
-		
+
 for line_vcf1 in vcffile:
 	line_vcf=line_vcf1.rstrip().split('\t')
 	if line_vcf[0][0]!="#" and ("," not in line_vcf[4]):
@@ -238,19 +236,19 @@ for line_vcf1 in vcffile:
 			chr=str(line_vcf[0]).lower().replace("chr", "")
 			temp_index=bisect.bisect(bed_lower[chr][1], int(line_vcf[1]))-1
 			if temp_index<0:
-				keep=0	 
+				keep=0
 			elif int(line_vcf[1])>bed_upper[chr][1][temp_index]:
 				keep=0
-				
+
 		if not (options.passfilter and line_vcf[6]!="PASS"):
 			if options.snpformat=="VCFID":
 				snpid=str(line_vcf[2])
-			else: 
+			else:
 				snpid=str(line_vcf[0]).lower().replace("chr", "")+":"+str(line_vcf[1])+":"+str(line_vcf[3])+":"+str(line_vcf[4])
 			if (snpid in allsnplist) and (keep==1):
 				counts=extractcounts(pops, line_vcf[7], options.maxAC, options.maxAF, options.popmaxAF,options.minAN)
 				count_table[snpid]=[snpid, counts[0], counts[1]]
-vcffile.close() 
+vcffile.close()
 
 #Write output
 outfile=open(options.outfilename, "w")

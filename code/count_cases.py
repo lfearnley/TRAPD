@@ -1,10 +1,7 @@
 #!/usr/bin/python
-import optparse
-import operator
-import re
-import sys
-import gzip 
 import bisect
+import gzip
+import optparse
 
 #Parse options
 parser = optparse.OptionParser()
